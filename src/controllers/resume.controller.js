@@ -1,40 +1,47 @@
-const fs = require("fs");
 const pdfParse = require("pdf-parse");
 const User = require("../models/User");
-const multer = require("multer");
 
-const upload = multer({ dest: "uploads/" });
+exports.uploadResume = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ msg: "No file uploaded" });
+    }
 
-const SKILLS = [
-  "javascript", "typescript", "react", "node",
-  "express", "mongodb", "sql", "python",
-  "java", "c++", "html", "css", "tailwind",
-  "docker", "aws", "git"
-];
-
-exports.uploadResume = [
-  upload.single("resume"),
-  async (req, res) => {
-    const buffer = fs.readFileSync(req.file.path);
-
-    const data = await pdfParse(buffer);
+    const data = await pdfParse(req.file.buffer);
     const text = data.text.toLowerCase();
 
-    const extracted = SKILLS.filter(skill =>
+    const skillsList = [
+      "javascript",
+      "react",
+      "node",
+      "express",
+      "mongodb",
+      "sql",
+      "python",
+      "java",
+      "c++",
+      "html",
+      "css",
+      "git",
+    ];
+
+    const skills = skillsList.filter(skill =>
       text.includes(skill)
     );
 
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { skills: extracted },
+      { skills },
       { new: true }
     );
 
-    fs.unlinkSync(req.file.path);
-
     res.json({
-      skills: extracted,
-      user
+      msg: "Resume uploaded successfully",
+      skills,
+      user,
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Resume parsing failed" });
   }
-];
+};
