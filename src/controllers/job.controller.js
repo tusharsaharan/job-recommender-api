@@ -1,44 +1,77 @@
 const Job = require("../models/Job");
 
+/**
+ * Recruiter creates a job
+ */
 exports.createJob = async (req, res) => {
-  const job = await Job.create({
-    ...req.body,
-    recruiter: req.user._id,
-    skills: req.body.skills || req.body.requiredSkills || [],
-  });
-  res.json(job);
+  try {
+    const job = await Job.create({
+      title: req.body.title,
+      company: req.body.company,
+      description: req.body.description,
+      skills: req.body.skills || [],
+      recruiter: req.user._id,
+    });
+
+    res.json(job);
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to create job" });
+  }
 };
 
+/**
+ * Get ALL jobs (no matching, mainly for recruiter/admin)
+ */
 exports.getJobs = async (req, res) => {
-  const jobs = await Job.find().lean();
-
-  if (!req.user || !req.user.skills || req.user.skills.length === 0) {
-    return res.json(jobs.map(j => ({ ...j, score: 0 })));
+  try {
+    const jobs = await Job.find();
+    res.json(jobs);
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to fetch jobs" });
   }
+};
 
-  const userSkills = req.user.skills.map(s => s.toLowerCase());
+/**
+ * Get jobs MATCHED to seeker skills
+ */
+exports.getMatchedJobs = async (req, res) => {
+  try {
+    const userSkills = (req.user.skills || []).map(s => s.toLowerCase());
 
-  const scoredJobs = jobs.map(job => {
-    const jobSkills =
-      job.skills ||
-      job.requiredSkills ||
-      [];
-
-    if (jobSkills.length === 0) {
-      return { ...job, score: 0 };
+    if (userSkills.length === 0) {
+      return res.json([]);
     }
 
-    let matched = 0;
-    for (const skill of jobSkills) {
-      if (userSkills.includes(skill.toLowerCase())) {
-        matched++;
-      }
-    }
+    const jobs = await Job.find();
 
-    const score = matched / jobSkills.length;
-    return { ...job, score };
-  });
+    const matchedJobs = jobs
+      .map(job => {
+        const jobSkills = (job.skills || []).map(s => s.toLowerCase());
 
-  scoredJobs.sort((a, b) => b.score - a.score);
-  res.json(scoredJobs);
+        if (jobSkills.length === 0) return null;
+
+        const matched = jobSkills.filter(skill =>
+          userSkills.includes(skill)
+        );
+
+        if (matched.length === 0) return null;
+
+        const score = Math.round(
+          (matched.length / jobSkills.length) * 100
+        );
+
+        return {
+          ...job.toObject(),
+          score,
+          matchedSkills: matched,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.score - a.score);
+
+    res.json(matchedJobs);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Failed to match jobs" });
+  }
 };

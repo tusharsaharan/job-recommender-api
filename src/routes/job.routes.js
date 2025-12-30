@@ -1,12 +1,14 @@
 const express = require("express");
-const auth = require("../middleware/auth.middleware");
-const role = require("../middleware/role.middleware");
-const { createJob, getJobs } = require("../controllers/job.controller");
-
 const router = express.Router();
+const auth = require("../middleware/auth.middleware");
+const {
+  createJob,
+  getJobs,
+  getMatchedJobs,
+} = require("../controllers/job.controller");
 
+router.post("/", auth, createJob);
 router.get("/", auth, getJobs);
-router.get("/match", auth, getJobs);
-router.post("/", auth, role("recruiter"), createJob);
+router.get("/match", auth, getMatchedJobs);
 
 module.exports = router;
