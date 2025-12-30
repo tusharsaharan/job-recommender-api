@@ -5,6 +5,7 @@ const {
   applyToJob,
   getMyApplications,
   getApplicantsForRecruiter,
+  updateApplicationStatus,
 } = require("../controllers/application.controller");
 
 const router = express.Router();
@@ -14,3 +15,10 @@ router.get("/me", auth, role("seeker"), getMyApplications);
 router.get("/recruiter", auth, role("recruiter"), getApplicantsForRecruiter);
 
 module.exports = router;
+
+router.patch(
+  "/:applicationId/status",
+  auth,
+  role("recruiter"),
+  updateApplicationStatus
+);
