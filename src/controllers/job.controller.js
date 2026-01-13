@@ -12,6 +12,7 @@ exports.createJob = async (req, res) => {
       skills: req.body.skills || [],
       recruiter: req.user._id,
     });
+    console.log(job);
 
     res.json(job);
   } catch (err) {
