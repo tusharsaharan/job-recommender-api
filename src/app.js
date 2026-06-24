@@ -9,7 +9,7 @@ const applicationRoutes = require("./routes/application.routes");
 
 const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 app.use(cors({
   origin: "*",
   methods: "*",
@@ -25,5 +25,17 @@ app.use("/api/users", userRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/resume", resumeRoutes);
 app.use("/api/applications", applicationRoutes);
+
+// Global error handler — catches multer errors, unhandled throws, etc.
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err.message);
+  if (err.name === "MulterError") {
+    return res.status(400).json({ msg: `Upload error: ${err.message}` });
+  }
+  if (err.message === "Only PDF allowed") {
+    return res.status(400).json({ msg: "Only PDF files are accepted" });
+  }
+  res.status(500).json({ msg: err.message || "Internal server error" });
+});
 
 module.exports = app;

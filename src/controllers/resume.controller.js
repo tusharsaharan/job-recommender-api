@@ -11,6 +11,10 @@ exports.uploadResume = async (req, res) => {
     const data = await pdfParse(req.file.buffer);
     const text = data.text;
 
+    if (!text || text.trim().length < 50) {
+      return res.status(400).json({ msg: "Could not extract text from PDF. Make sure the file is not scanned/image-based." });
+    }
+
     const parsed = await ai.parseResume(text);
 
     const updateData = {
@@ -23,6 +27,7 @@ exports.uploadResume = async (req, res) => {
       if (parsed.education.cgpa) updateData.cgpa = parsed.education.cgpa;
       if (parsed.education.college) updateData.college = parsed.education.college;
       if (parsed.education.tier) updateData.collegeTier = parsed.education.tier;
+      if (parsed.education.degree) updateData.degree = parsed.education.degree;
     }
 
     if (parsed.achievements && parsed.achievements.length > 0) {

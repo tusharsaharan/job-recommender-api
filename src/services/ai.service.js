@@ -1,6 +1,14 @@
 const { GoogleGenAI } = require("@google/genai");
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Lazy-init: don't crash at require-time if the key is missing
+let _ai = null;
+function getAI() {
+  if (!_ai) {
+    if (!process.env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not set");
+    _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  }
+  return _ai;
+}
 
 exports.parseResume = async (pdfText) => {
   try {
@@ -24,13 +32,18 @@ Resume Text:
 ${pdfText}
 `;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-flash-lite-latest",
       contents: prompt,
       config: { responseMimeType: "application/json" },
     });
 
-    return JSON.parse(response.text);
+    let text = response.text;
+    if (text.startsWith("```")) {
+      text = text.replace(/^```(json)?\n/, "").replace(/\n```$/, "");
+    }
+
+    return JSON.parse(text);
   } catch (error) {
     console.error("AI Parsing Error:", error.status, error.message);
     if (error.status === 429) {
@@ -94,15 +107,27 @@ Required Skills:
 ${jobSkills ? jobSkills.join(", ") : "Not specified"}
 `;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-flash-lite-latest",
       contents: prompt,
       config: { responseMimeType: "application/json" },
     });
 
-    return JSON.parse(response.text);
+    let text = response.text;
+    if (text.startsWith("```")) {
+      text = text.replace(/^```(json)?\n/, "").replace(/\n```$/, "");
+    }
+    
+    return JSON.parse(text);
   } catch (error) {
-    console.error("AI ATS Scoring Error:", error);
+    console.error("AI ATS Scoring Error:", error.status || "", error.message);
+    if (error.status === 429) {
+      return {
+        score: 0,
+        breakdown: { skillMatch: 0, experienceRelevance: 0, educationFit: 0, projectsAndAchievements: 0, keywordOptimization: 0, overallPresentation: 0 },
+        tips: ["AI rate limit reached. Please wait ~60 seconds and try again."],
+      };
+    }
     return basicAtsScore(resumeText, jobSkills);
   }
 };
@@ -128,18 +153,26 @@ You are a helpful recruiter assistant. Based on the user's message, generate a s
     - "requiredDegree": String (e.g. "B.Tech", "Master's", or "" if not specified)
 
 User's request:
-"${userPrompt}"
+"${userPrompt.slice(0, 2000)}"
 `;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-flash-lite-latest",
       contents: prompt,
       config: { responseMimeType: "application/json" },
     });
 
-    return JSON.parse(response.text);
+    let text = response.text;
+    if (text.startsWith("```")) {
+      text = text.replace(/^```(json)?\n/, "").replace(/\n```$/, "");
+    }
+    
+    return JSON.parse(text);
   } catch (error) {
-    console.error("AI Job Generation Error:", error);
+    console.error("AI Job Generation Error:", error.status || "", error.message);
+    if (error.status === 429) {
+      return { title: "Rate Limited", description: "AI quota exceeded. Please wait ~60 seconds and try again.", company: "", location: "Remote", type: "Full-time", skills: "", atsRequirements: { minCgpa: 0, targetCollegeTier: "any", minExperienceYears: 0, requiredDegree: "" } };
+    }
     return null;
   }
 };

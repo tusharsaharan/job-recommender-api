@@ -5,6 +5,10 @@ const Job = require("../models/Job");
  */
 exports.createJob = async (req, res) => {
   try {
+    if (!req.body.title || !req.body.description) {
+      return res.status(400).json({ msg: "Title and description are required" });
+    }
+
     const job = await Job.create({
       title: req.body.title,
       company: req.body.company,
@@ -17,20 +21,20 @@ exports.createJob = async (req, res) => {
       },
       recruiter: req.user._id,
     });
-    console.log(job);
 
-    res.json(job);
+    res.status(201).json(job);
   } catch (err) {
     res.status(500).json({ msg: "Failed to create job" });
   }
 };
 
 /**
- * Get ALL jobs (no matching, mainly for recruiter/admin)
+ * Get ALL jobs (filtered by recruiter if recruiter)
  */
 exports.getJobs = async (req, res) => {
   try {
-    const jobs = await Job.find();
+    const filter = req.user.role === "recruiter" ? { recruiter: req.user._id } : {};
+    const jobs = await Job.find(filter).sort({ createdAt: -1 });
     res.json(jobs);
   } catch (err) {
     res.status(500).json({ msg: "Failed to fetch jobs" });
@@ -72,9 +76,8 @@ exports.getMatchedJobs = async (req, res) => {
 
         // 3. Experience Check
         if (reqs.minExperienceYears > 0) {
-          // crude estimation: each experience entry is roughly 1-2 years, or we just count length
-          // Ideally user has a parsed totalYears, but we use length as a proxy if it's missing
-          const estimatedYears = (req.user.experience || []).length * 1.5; 
+          const expArray = Array.isArray(req.user.experience) ? req.user.experience : [];
+          const estimatedYears = expArray.length * 1.5; 
           if (estimatedYears < reqs.minExperienceYears) {
              return null;
           }
@@ -84,11 +87,8 @@ exports.getMatchedJobs = async (req, res) => {
         if (reqs.requiredDegree && reqs.requiredDegree.trim() !== "") {
           const userDegree = (req.user.degree || "").toLowerCase();
           const reqDegree = reqs.requiredDegree.toLowerCase();
-          // simple check
           if (!userDegree.includes(reqDegree) && !reqDegree.includes(userDegree)) {
-            // return null; // Can be too strict if parsing missed it, let's keep it soft or strict?
-            // User requested strict adherence.
-            if (req.user.degree) return null; 
+            return null; 
           }
         }
 
@@ -122,6 +122,7 @@ exports.getMatchedJobs = async (req, res) => {
   }
 };
 
+const mongoose = require("mongoose");
 const ai = require("../services/ai.service");
 
 /**
@@ -130,6 +131,9 @@ const ai = require("../services/ai.service");
 exports.getJobAtsScore = async (req, res) => {
   try {
     const { jobId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(jobId)) {
+      return res.status(400).json({ msg: "Invalid job ID format" });
+    }
     const job = await Job.findById(jobId);
     
     if (!job) {

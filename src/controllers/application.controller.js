@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Application = require("../models/Application");
 const Job = require("../models/Job");
 const ai = require("../services/ai.service");
@@ -5,6 +6,10 @@ const ai = require("../services/ai.service");
 exports.applyToJob = async (req, res) => {
   try {
     const { jobId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(jobId)) {
+      return res.status(400).json({ msg: "Invalid job ID format" });
+    }
+
     const job = await Job.findById(jobId);
     if (!job) {
       return res.status(404).json({ msg: "Job not found" });
@@ -12,6 +17,10 @@ exports.applyToJob = async (req, res) => {
 
     if (job.recruiter.toString() === req.user._id.toString()) {
       return res.status(400).json({ msg: "Cannot apply to your own job" });
+    }
+
+    if (!req.user.resumeText) {
+      return res.status(400).json({ msg: "Please upload your resume before applying." });
     }
 
     const atsResult = await ai.computeAtsScore(
@@ -81,6 +90,10 @@ exports.updateApplicationStatus = async (req, res) => {
   try {
     const { applicationId } = req.params;
     const { status } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+      return res.status(400).json({ msg: "Invalid application ID format" });
+    }
 
     if (!["shortlisted", "rejected"].includes(status)) {
       return res.status(400).json({ msg: "Invalid status" });

@@ -12,11 +12,18 @@ const userSchema = new mongoose.Schema({
   skills: [{ type: String }],
   resumeText: { type: String },
   resumeSummary: { type: String },
+  degree: { type: String },
   cgpa: { type: Number },
   college: { type: String },
   collegeTier: { type: String, enum: ["tier1", "tier2", "tier3", "unknown"], default: "unknown" },
   achievements: [{ type: String }],
   experience: [{ title: String, company: String, duration: String }],
 }, { timestamps: true });
+
+userSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.password;
+  return obj;
+};
 
 module.exports = mongoose.model("User", userSchema);
