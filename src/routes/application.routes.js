@@ -13,12 +13,12 @@ const router = express.Router();
 router.post("/:jobId", auth, role("seeker"), applyToJob);
 router.get("/me", auth, role("seeker"), getMyApplications);
 router.get("/recruiter", auth, role("recruiter"), getApplicantsForRecruiter);
-
-module.exports = router;
-
 router.patch(
   "/:applicationId/status",
   auth,
   role("recruiter"),
   updateApplicationStatus
 );
+
+module.exports = router;
+

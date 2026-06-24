@@ -13,9 +13,6 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.21.0",
     "multer": "^2.0.2",
-    "muter": "^0.7.0",
-    "parse": "^8.0.0",
-    "pdf": "^0.1.0",
     "pdf-parse": "^1.1.4"
   },
   "devDependencies": {
