@@ -22,6 +22,16 @@ const applicationSchema = new mongoose.Schema(
         enum: ["applied", "shortlisted", "rejected"],
         default: "applied",
     },
+    atsScore: { type: Number },
+    atsBreakdown: {
+      skillMatch: { type: Number },
+      experienceRelevance: { type: Number },
+      educationFit: { type: Number },
+      projectsAndAchievements: { type: Number },
+      keywordOptimization: { type: Number },
+      overallPresentation: { type: Number }
+    },
+    atsTips: [{ type: String }]
   },
   { timestamps: true }
 );

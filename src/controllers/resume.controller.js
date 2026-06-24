@@ -1,5 +1,6 @@
 const pdfParse = require("pdf-parse");
 const User = require("../models/User");
+const ai = require("../services/ai.service");
 
 exports.uploadResume = async (req, res) => {
   try {
@@ -8,36 +9,39 @@ exports.uploadResume = async (req, res) => {
     }
 
     const data = await pdfParse(req.file.buffer);
-    const text = data.text.toLowerCase();
+    const text = data.text;
 
-    const skillsList = [
-      "javascript",
-      "react",
-      "node",
-      "express",
-      "mongodb",
-      "sql",
-      "python",
-      "java",
-      "c++",
-      "html",
-      "css",
-      "git",
-    ];
+    const parsed = await ai.parseResume(text);
 
-    const skills = skillsList.filter(skill =>
-      text.includes(skill)
-    );
+    const updateData = {
+      skills: parsed.skills || [],
+      resumeText: text,
+      resumeSummary: parsed.summary || "",
+    };
 
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { skills },
-      { new: true }
-    );
+    if (parsed.education) {
+      if (parsed.education.cgpa) updateData.cgpa = parsed.education.cgpa;
+      if (parsed.education.college) updateData.college = parsed.education.college;
+      if (parsed.education.tier) updateData.collegeTier = parsed.education.tier;
+    }
+
+    if (parsed.achievements && parsed.achievements.length > 0) {
+      updateData.achievements = parsed.achievements;
+    }
+
+    if (parsed.experience && parsed.experience.length > 0) {
+      updateData.experience = parsed.experience;
+    }
+
+    const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true });
 
     res.json({
       msg: "Resume uploaded successfully",
-      skills,
+      skills: updateData.skills,
+      summary: updateData.resumeSummary,
+      education: parsed.education,
+      achievements: parsed.achievements,
+      experience: parsed.experience,
       user,
     });
   } catch (err) {
