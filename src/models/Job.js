@@ -16,7 +16,10 @@ const jobSchema = new mongoose.Schema({
   recruiter: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+    required: true,
   },
 }, { timestamps: true });
+
+jobSchema.index({ recruiter: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Job", jobSchema);

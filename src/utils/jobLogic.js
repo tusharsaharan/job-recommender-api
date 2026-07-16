@@ -249,30 +249,49 @@ function canonicalDegree(value) {
   if (/(msc|masterofscience)/.test(degree)) return "msc";
   if (/mba|masterofbusinessadministration/.test(degree)) return "mba";
   if (/phd|doctorofphilosophy/.test(degree)) return "phd";
+  if (/(bachelorsdegree|bachelordegree|undergraduatedegree|undergraduate)/.test(degree)) return "bachelor";
+  if (/(mastersdegree|masterdegree|postgraduatedegree|postgraduate)/.test(degree)) return "master";
   return degree;
 }
 
 function degreesMatch(userDegree, requiredDegree) {
   const user = canonicalDegree(userDegree);
   const required = canonicalDegree(requiredDegree);
-  return Boolean(user && required && (user === required || user.includes(required) || required.includes(user)));
+  if (!user || !required) return false;
+  if (user === required || user.includes(required) || required.includes(user)) return true;
+  if (required === "bachelor") return ["bachelor", "btech", "bsc"].includes(user);
+  if (required === "master") return ["master", "mtech", "msc", "mba"].includes(user);
+  return false;
 }
 
-function meetsAtsRequirements(job, user) {
+function getAtsEligibility(job, user) {
   const reqs = normalizeAtsRequirements(job?.atsRequirements);
+  const reasons = [];
 
-  if (reqs.minCgpa > 0 && normalizeNumber(user?.cgpa, 0, 10) < reqs.minCgpa) return false;
+  if (reqs.minCgpa > 0 && normalizeNumber(user?.cgpa, 0, 10) < reqs.minCgpa) {
+    reasons.push(`Requires a CGPA of ${reqs.minCgpa} or higher.`);
+  }
 
   if (reqs.targetCollegeTier !== "any") {
     const requiredRank = TIER_RANK[reqs.targetCollegeTier] || 0;
     const userRank = TIER_RANK[user?.collegeTier] || 0;
-    if (userRank < requiredRank) return false;
+    if (userRank < requiredRank) {
+      reasons.push(`Requires a ${reqs.targetCollegeTier.toUpperCase()} or higher college profile.`);
+    }
   }
 
-  if (reqs.minExperienceYears > 0 && estimateExperienceYears(user?.experience) < reqs.minExperienceYears) return false;
-  if (reqs.requiredDegree && !degreesMatch(user?.degree, reqs.requiredDegree)) return false;
+  if (reqs.minExperienceYears > 0 && estimateExperienceYears(user?.experience) < reqs.minExperienceYears) {
+    reasons.push(`Requires ${reqs.minExperienceYears}+ years of experience.`);
+  }
+  if (reqs.requiredDegree && !degreesMatch(user?.degree, reqs.requiredDegree)) {
+    reasons.push(`Requires ${reqs.requiredDegree}.`);
+  }
 
-  return true;
+  return { eligible: reasons.length === 0, reasons };
+}
+
+function meetsAtsRequirements(job, user) {
+  return getAtsEligibility(job, user).eligible;
 }
 
 function scoreJobMatch(job, user) {
@@ -298,6 +317,7 @@ module.exports = {
   validateJobPayload,
   mergeJobDraft,
   estimateExperienceYears,
+  getAtsEligibility,
   meetsAtsRequirements,
   scoreJobMatch,
 };

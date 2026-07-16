@@ -1,9 +1,10 @@
 const Job = require("../models/Job");
+const Application = require("../models/Application");
 const {
+  getAtsEligibility,
   validateJobPayload,
   normalizeJobPayload,
   mergeJobDraft,
-  meetsAtsRequirements,
   scoreJobMatch,
 } = require("../utils/jobLogic");
 
@@ -39,9 +40,38 @@ exports.createJob = async (req, res) => {
 exports.getJobs = async (req, res) => {
   try {
     const filter = req.user.role === "recruiter" ? { recruiter: req.user._id } : {};
-    const jobs = await Job.find(filter).sort({ createdAt: -1 });
-    res.json(jobs);
+    const jobs = await Job.find(filter).sort({ createdAt: -1 }).lean();
+
+    if (req.user.role !== "recruiter" || jobs.length === 0) {
+      return res.json(jobs);
+    }
+
+    const summaries = await Application.aggregate([
+      { $match: { recruiter: req.user._id } },
+      {
+        $group: {
+          _id: "$job",
+          applicationCount: { $sum: 1 },
+          shortlistedCount: { $sum: { $cond: [{ $eq: ["$status", "shortlisted"] }, 1, 0] } },
+          rejectedCount: { $sum: { $cond: [{ $eq: ["$status", "rejected"] }, 1, 0] } },
+          latestApplicationAt: { $max: "$createdAt" },
+        },
+      },
+    ]);
+    const summaryByJob = new Map(summaries.map((summary) => [String(summary._id), summary]));
+
+    res.json(jobs.map((job) => {
+      const summary = summaryByJob.get(String(job._id));
+      return {
+        ...job,
+        applicationCount: summary?.applicationCount || 0,
+        shortlistedCount: summary?.shortlistedCount || 0,
+        rejectedCount: summary?.rejectedCount || 0,
+        latestApplicationAt: summary?.latestApplicationAt || null,
+      };
+    }));
   } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: "Failed to fetch jobs" });
   }
 };
@@ -51,21 +81,22 @@ exports.getJobs = async (req, res) => {
  */
 exports.getMatchedJobs = async (req, res) => {
   try {
-    const jobs = await Job.find();
+    const jobs = await Job.find().sort({ createdAt: -1 }).lean();
 
     const matchedJobs = jobs
       .map(job => {
-        if (!meetsAtsRequirements(job, req.user)) return null;
         const match = scoreJobMatch(job, req.user);
+        const eligibility = getAtsEligibility(job, req.user);
 
         return {
-          ...job.toObject(),
+          ...job,
           score: match.score,
           matchedSkills: match.matchedSkills,
+          eligible: eligibility.eligible,
+          eligibilityReasons: eligibility.reasons,
         };
       })
-      .filter(Boolean)
-      .sort((a, b) => b.score - a.score);
+      .sort((a, b) => Number(b.eligible) - Number(a.eligible) || b.score - a.score);
 
     res.json(matchedJobs);
   } catch (err) {

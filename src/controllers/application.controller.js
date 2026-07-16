@@ -16,7 +16,11 @@ exports.applyToJob = async (req, res) => {
       return res.status(404).json({ msg: "Job not found" });
     }
 
-    if (job.recruiter.toString() === req.user._id.toString()) {
+    if (!job.recruiter) {
+      return res.status(409).json({ msg: "This role is unavailable because its recruiter is no longer linked." });
+    }
+
+    if (String(job.recruiter) === String(req.user._id)) {
       return res.status(400).json({ msg: "Cannot apply to your own job" });
     }
 
@@ -113,7 +117,7 @@ exports.updateApplicationStatus = async (req, res) => {
       return res.status(404).json({ msg: "Application not found" });
     }
 
-    if (application.recruiter.toString() !== req.user._id.toString()) {
+    if (String(application.recruiter) !== String(req.user._id)) {
       return res.status(403).json({ msg: "Forbidden" });
     }
     application.status = status;
