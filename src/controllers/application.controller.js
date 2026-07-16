@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Application = require("../models/Application");
 const Job = require("../models/Job");
 const ai = require("../services/ai.service");
+const { meetsAtsRequirements } = require("../utils/jobLogic");
 
 exports.applyToJob = async (req, res) => {
   try {
@@ -23,17 +24,24 @@ exports.applyToJob = async (req, res) => {
       return res.status(400).json({ msg: "Please upload your resume before applying." });
     }
 
+    if (!meetsAtsRequirements(job, req.user)) {
+      return res.status(403).json({ msg: "Your profile does not meet this role's required criteria." });
+    }
+
     const atsResult = await ai.computeAtsScore(
       req.user.resumeText,
       job.description,
       job.skills,
       {
+        skills: req.user.skills,
         college: req.user.college,
         collegeTier: req.user.collegeTier,
         cgpa: req.user.cgpa,
+        degree: req.user.degree,
         achievements: req.user.achievements,
         experience: req.user.experience,
-      }
+      },
+      job.atsRequirements,
     );
 
     const application = await Application.create({
@@ -45,6 +53,7 @@ exports.applyToJob = async (req, res) => {
       atsTips: atsResult.tips
     });
 
+    await application.populate("job");
     res.json(application);
   } catch (error) {
     if (error.code === 11000) {
@@ -76,7 +85,7 @@ exports.getApplicantsForRecruiter = async (req, res) => {
       recruiter: req.user._id,
     })
       .populate("job")
-      .populate("seeker", "name email skills cgpa college collegeTier achievements")
+      .populate("seeker", "name email skills cgpa college collegeTier degree achievements experience")
       .sort({ createdAt: -1 });
 
     res.json(applications);
@@ -95,7 +104,7 @@ exports.updateApplicationStatus = async (req, res) => {
       return res.status(400).json({ msg: "Invalid application ID format" });
     }
 
-    if (!["shortlisted", "rejected"].includes(status)) {
+    if (!["applied", "shortlisted", "rejected"].includes(status)) {
       return res.status(400).json({ msg: "Invalid status" });
     }
 

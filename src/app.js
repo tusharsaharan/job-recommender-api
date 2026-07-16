@@ -6,6 +6,7 @@ const userRoutes = require("./routes/user.routes");
 const jobRoutes = require("./routes/job.routes");
 const resumeRoutes = require("./routes/resume.routes");
 const applicationRoutes = require("./routes/application.routes");
+const messageRoutes = require("./routes/message.routes");
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/resume", resumeRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/messages", messageRoutes);
 
 // Global error handler — catches multer errors, unhandled throws, etc.
 app.use((err, req, res, next) => {
