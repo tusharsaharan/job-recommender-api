@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0d1117,50:161b22,100:1f6feb&height=220&section=header&text=JobMatch%20API&fontSize=65&fontColor=58a6ff&fontAlignY=35&animation=twinkling&desc=AI-Powered%20Recruitment%20Backend&descSize=18&descAlignY=55&descAlign=50" width="100%" alt="JobMatch API Header" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0d1117,50:161b22,100:1f6feb&height=220&section=header&text=JobMatch%20API&fontSize=65&fontColor=58a6ff&fontAlignY=35&animation=twinkling&desc=AI-Powered%20Recruitment%20Backend%20%7C%20Google%20Gemini&descSize=16&descAlignY=55&descAlign=50" width="100%" alt="JobMatch API Header" />
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=JetBrains+Mono&size=22&pause=1000&color=58A6FF&center=true&vCenter=true&multiline=true&repeat=true&width=700&height=100&lines=%F0%9F%94%8D+AI+Resume+Parsing+%E2%80%A2+ATS+Match+Scoring;%F0%9F%A4%96+Powered+by+Google+Gemini+Flash+Lite;%F0%9F%9B%A1%EF%B8%8F+Role-Based+Auth+%E2%80%A2+Production+Hardened" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.herokuapp.com?font=JetBrains+Mono&size=22&pause=1000&color=58A6FF&center=true&vCenter=true&multiline=true&repeat=true&width=700&height=100&lines=%F0%9F%94%8D+AI+Resume+Parsing+%E2%80%A2+ATS+Match+Scoring;%F0%9F%A4%96+Powered+by+Google+Gemini+Flash+Lite;%F0%9F%9B%A1%EF%B8%8F+Role-Based+Auth+%E2%80%A2+44+Tests+Passing" alt="Typing SVG" />
 </p>
 
 <p align="center">
@@ -14,15 +14,40 @@
   <a href="#"><img src="https://img.shields.io/badge/Coverage-70%25-eed49f?style=for-the-badge&logo=codecov&logoColor=D9E0EE&labelColor=302D41" alt="Coverage" /></a>
 </p>
 
-<br />
-
----
+[![divider](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](https://github.com/tusharsaharan/job-recommender-api)
 
 ## 🧬 About
 
-> **JobMatch API** is a next-generation recruitment backend that replaces traditional keyword matching with **Google Gemini LLM intelligence**. It parses PDF resumes into structured data, auto-generates ATS-optimized job postings from plain English, and computes real-time compatibility scores with actionable feedback — all behind a hardened, role-based Express.js API.
+<img align="right" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcHg4amFtN3ltcjQxaXJ6YTE4dXJ1Y3E3dW80MHV4aGRzenh4eXE4biZlcD12MV9naWZzX3NlYXJjaCZjdD1n/qgQUggAC3Pfv687qPC/giphy.gif" width="280" alt="API Animation" />
 
-<br />
+```javascript
+const JobMatchAPI = {
+    name: "JobMatch API",
+    type: "AI-Powered Recruitment Backend",
+    engine: "Google Gemini Flash Lite",
+    stack: {
+        runtime: "Node.js",
+        framework: "Express.js",
+        database: "MongoDB + Mongoose",
+        auth: "JWT + Bcrypt",
+        ai: "@google/genai"
+    },
+    features: [
+        "AI Resume Parsing (PDF → Structured Data)",
+        "AI Job Description Generation",
+        "Real-time ATS Match Scoring",
+        "Role-Based Access Control",
+        "LLM Output Sanitization"
+    ],
+    tests: { passed: 44, suites: 5 }
+};
+```
+
+<br clear="right" />
+
+> **JobMatch API** replaces traditional keyword matching with **Google Gemini LLM intelligence**. It parses PDF resumes into structured data, auto-generates ATS-optimized job postings from plain English, and computes real-time compatibility scores with actionable feedback — all behind a hardened, role-based Express.js API.
+
+[![divider](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](https://github.com/tusharsaharan/job-recommender-api)
 
 ## ⚡ Tech Stack
 
@@ -41,9 +66,7 @@
   <img src="https://img.shields.io/badge/Mongoose-880000?style=flat-square&logo=mongoose&logoColor=white" alt="Mongoose" />
 </p>
 
-<br />
-
----
+[![divider](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](https://github.com/tusharsaharan/job-recommender-api)
 
 ## 🏗️ Architecture
 
@@ -91,9 +114,7 @@
    └──────────────────────────────────────────────┘
 ```
 
-<br />
-
----
+[![divider](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](https://github.com/tusharsaharan/job-recommender-api)
 
 ## ✨ Key Features
 
@@ -122,9 +143,7 @@
   </tr>
 </table>
 
-<br />
-
----
+[![divider](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](https://github.com/tusharsaharan/job-recommender-api)
 
 ## 🚀 Quick Start
 
@@ -159,9 +178,7 @@ GEMINI_API_KEY=your_google_gemini_api_key
 
 </details>
 
-<br />
-
----
+[![divider](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](https://github.com/tusharsaharan/job-recommender-api)
 
 ## 📡 API Reference
 
@@ -192,9 +209,7 @@ GEMINI_API_KEY=your_google_gemini_api_key
   </tbody>
 </table>
 
-<br />
-
----
+[![divider](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](https://github.com/tusharsaharan/job-recommender-api)
 
 ## 🧪 Testing
 
@@ -214,9 +229,7 @@ npm test                # Run all tests
 npm run test:coverage   # Run with coverage report
 ```
 
-<br />
-
----
+[![divider](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](https://github.com/tusharsaharan/job-recommender-api)
 
 ## 📂 Project Structure
 
@@ -241,9 +254,23 @@ job-recommender-api/
 └── package.json
 ```
 
-<br />
+[![divider](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](https://github.com/tusharsaharan/job-recommender-api)
 
----
+## 🔗 Related Repositories
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/tusharsaharan/job-recommender-web">
+        <img src="https://img.shields.io/badge/Frontend-Jobly_Web-58a6ff?style=for-the-badge&logo=react&logoColor=white" alt="Frontend" />
+      </a>
+      <br />
+      <sub>TanStack Start + React 19 + TypeScript + React Three Fiber</sub>
+    </td>
+  </tr>
+</table>
+
+[![divider](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](https://github.com/tusharsaharan/job-recommender-api)
 
 ## 🤝 Contributing
 
@@ -261,15 +288,9 @@ git push origin feature/amazing-feature
 # 5. Open a Pull Request
 ```
 
-<br />
-
----
-
 ## 📜 License
 
 Distributed under the **MIT License**.
-
-<br />
 
 ---
 
